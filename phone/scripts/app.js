@@ -1,17 +1,17 @@
 /* globals SIP,user,moment, Stopwatch */
 
 var ctxSip;
+var dynamicUser;
+var constructedConfig = {};
 
 $(document).ready(function() {
 
 
     if (typeof(user) === 'undefined') {
+        //We are here when we do not have any kind of static user configuration and all our configuration needs
+        //to come from some previously user populated source (in this case SIPCreds)
         user = JSON.parse(localStorage.getItem('SIPCreds'));
-    }
-
-    ctxSip = {
-
-        config : {
+        constructedConfig = {
             password        : user.Pass,
             displayName     : user.Display,
             uri             : 'sip:'+user.User+'@'+user.Realm,
@@ -21,7 +21,28 @@ $(document).ready(function() {
             log             : {
                 level : 0,
             }
-        },
+        }
+    }else{
+        //We are here when a config.js file was loaded that pulls in expected configuration information
+        //So we have some static config and we might have dynamic config in "SIPCreds"
+        //We expect Realm and WSServer to come from the config
+        dynamicUser = JSON.parse(localStorage.getItem('SIPCreds'));
+        constructedConfig = {
+            password        : dynamicUser.Pass,
+            displayName     : dynamicUser.Display,
+            uri             : 'sip:'+dynamicUser.User+'@'+user.Realm,
+            wsServers       : user.WSServer,
+            registerExpires : 30,
+            traceSip        : true,
+            log             : {
+                level : 0,
+            }
+        }
+    }
+
+    ctxSip = {
+
+        config : constructedConfig,
         ringtone     : document.getElementById('ringtone'),
         ringbacktone : document.getElementById('ringbacktone'),
         dtmfTone     : document.getElementById('dtmfTone'),
